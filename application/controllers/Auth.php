@@ -15,7 +15,7 @@ class Auth extends My_Controller
 	public function register()
 	{
 		$this->check_guest_only();
-
+		
 		$data['title'] = 'Register';
 		$data['content'] = 'auth/register';
 
@@ -28,14 +28,20 @@ class Auth extends My_Controller
 		$this->load->helper('form');
 		$this->load->library('form_validation');
 
+		$this->form_validation->set_rules('email', 'Email', 'required');
 		$this->form_validation->set_rules('username', 'Username', 'required');
+		$this->form_validation->set_rules('nim', 'Nim', 'required');
+		$this->form_validation->set_rules('name', 'Name', 'required');
 		$this->form_validation->set_rules('password', 'Password', 'required');
 
 		if ($this->form_validation->run() == FALSE) {
 			$this->register();
 		} else {
 			$data = array(
+				'email' => $this->input->post('email'),
 				'username' => $this->input->post('username'),
+				'nim' => $this->input->post('nim'),
+				'nama' => $this->input->post('name'),
 				'password' => $this->input->post('password')
 			);
 
@@ -62,20 +68,29 @@ class Auth extends My_Controller
 		$this->load->helper('form');
 		$this->load->library('form_validation');
 
-		$this->form_validation->set_rules('username', 'Username', 'required');
+		$this->form_validation->set_rules('email', 'Email', 'required');
 		$this->form_validation->set_rules('password', 'Password', 'required');
 
 		if ($this->form_validation->run() == FALSE) {
 			$this->login();
 		} else {
-			$username = $this->input->post('username');
+			$email = $this->input->post('email');
 			$password = $this->input->post('password');
 
-			$user = $this->Auth_models->login($username, $password);
+			$user = $this->Auth_models->login($email, $password);
 
 			if ($user) {
-				$this->session->set_userdata('id_user', $user->id_user);
-				redirect('dashboard');
+				$this->session->set_userdata([
+					'id_user' => $user->id_user,
+					'role' => $user->role
+				]);
+				
+				if($user->role === 'mahasiswa'){
+					redirect('dashboard');
+				} else {
+					redirect('admin');
+				}
+				
 			} else {
 				redirect('auth/login');
 			}

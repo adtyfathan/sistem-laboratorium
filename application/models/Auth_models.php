@@ -10,15 +10,40 @@ class Auth_models extends CI_Model
 
 	public function register($data)
 	{
-		$data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+		$this->db->trans_start();
 
-		$this->db->insert('users', $data);
-		return $this->db->insert_id();
+		$data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+		
+		$userData = [
+			'email'    => $data['email'],
+			'username' => $data['username'],
+			'password' => $data['password'],
+			'role' => 'mahasiswa'
+		];
+
+		$this->db->insert('users', $userData);
+    	$id_user = $this->db->insert_id();
+
+		$mahasiswaData = [
+			'nim'     => $data['nim'],
+			'nama'    => $data['nama'],
+			'id_user ' => $id_user
+		];
+
+		$this->db->insert('mahasiswa', $mahasiswaData);
+		
+		$this->db->trans_complete();
+
+		if ($this->db->trans_status() === FALSE) {
+			return false;
+		}
+
+		return $id_user;
 	}
 
-	public function login($username, $password)
+	public function login($email, $password)
 	{
-		$this->db->where('username', $username);
+		$this->db->where('email', $email);
 		$query = $this->db->get('users');
 
 		if ($query->num_rows() == 1) {
@@ -29,5 +54,9 @@ class Auth_models extends CI_Model
 		}
 
 		return false;
+	}
+
+	public function isAdmin($id){
+		
 	}
 }

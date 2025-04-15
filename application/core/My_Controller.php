@@ -12,7 +12,7 @@ class My_Controller extends CI_Controller {
 
     protected function check_guest_only() {
         if (is_logged_in()) {
-            redirect('dashboard');
+            redirect('user/dashboard');
         }
     }
 }
